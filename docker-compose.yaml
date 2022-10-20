@@ -10,3 +10,18 @@ services:
       - .:/code
     ports:
       - '8000:8000'
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    container_name: db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: sample_db
+      MYSQL_USER: mysqluser
+      MYSQL_PASSWORD: mysqlpass
+    volumes:
+      - ./db/data:/var/lib/mysql
+    ports:
+      - '3306:3306'

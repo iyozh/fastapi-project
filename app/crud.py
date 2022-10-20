@@ -1,6 +1,7 @@
+from sqlalchemy import exists
 from sqlalchemy.orm import Session, Query
-from models import Post
-from schemas import CreatePostSchema
+from models import Post, User
+from schemas import CreatePostSchema, UserCreateSchema
 
 
 def get_posts(db: Session, skip: int = 0, limit: int = 100):
@@ -14,8 +15,9 @@ def create_post(db: Session, post: CreatePostSchema):
     db.refresh(db_item)
     return db_item
 
-def get_post_by_id(db: Session, post_id: int):
-    return db.query(Post).filter(Post.id == post_id).first()
+def get_post_by_id(db: Session, post_id: int, is_query: bool = False):
+    post = db.query(Post).filter(Post.id == post_id)
+    return post if is_query else post.first()
 
 def delete_post(db: Session, post: Post):
     db.delete(post)
@@ -26,3 +28,26 @@ def update_post(db: Session, post: Query, post_schema: CreatePostSchema):
     db.commit()
 
     return post.first()
+
+def check_post_if_exists(db: Session, post_id: int):
+    return db.query(exists().where(Post.id == post_id)).scalar()
+
+def get_user_by_id(db: Session, user_id: int):
+    return db.query(User).filter(User.id == user_id).first()
+
+
+def get_user_by_email(db: Session, email: str):
+    return db.query(User).filter(User.email == email).first()
+
+
+def get_users(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(User).offset(skip).limit(limit).all()
+
+
+def create_user(db: Session, user: UserCreateSchema):
+    fake_hashed_password = user.password + "notreallyhashed"
+    db_user = User(email=user.email, hashed_password=fake_hashed_password)
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user

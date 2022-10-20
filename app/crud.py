@@ -1,7 +1,10 @@
 from sqlalchemy import exists
 from sqlalchemy.orm import Session, Query
-from models import Post, User
-from schemas import CreatePostSchema, UserCreateSchema
+
+from app.models.post_model import Post
+from app.models.user_model import User
+from app.schemas.post_schema import CreatePostSchema
+from app.schemas.user_schema import UserCreateSchema
 
 
 def get_posts(db: Session, skip: int = 0, limit: int = 100):

@@ -5,3 +5,4 @@ sqlalchemy
 mysql-connector-python
 python-jose[cryptography]
 pydantic[email]
+passlib[bcrypt]

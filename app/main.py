@@ -2,13 +2,15 @@ from typing import List
 
 import uvicorn
 from fastapi import FastAPI, Depends, HTTPException, status, Response
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, declarative_base
 import models
 import crud
-from schemas import PostSchema, CreatePostSchema, UserSchema, UserCreateSchema
+from app.schemas.post_schema import PostSchema, CreatePostSchema
+from app.schemas.user_schema import UserSchema, UserCreateSchema
 from database import engine, SessionLocal, get_db
 
-models.Base.metadata.create_all(bind=engine)
+Base = declarative_base()
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 @app.post("/posts/", response_model=PostSchema)

@@ -1,13 +1,16 @@
+from datetime import timedelta
 from typing import List
 
 import uvicorn
 from fastapi import FastAPI, Depends, HTTPException, status, Response
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session, declarative_base
-import models
 import crud
-from app.schemas.post_schema import PostSchema, CreatePostSchema
-from app.schemas.user_schema import UserSchema, UserCreateSchema
-from database import engine, SessionLocal, get_db
+from lib.constants import ACCESS_TOKEN_EXPIRE_MINUTES
+from lib.schemas.post_schema import PostSchema, CreatePostSchema
+from lib.schemas.token_schema import Token
+from lib.schemas.user_schema import UserSchema, UserCreateSchema
+from database import engine, get_db
 
 Base = declarative_base()
 Base.metadata.create_all(bind=engine)
@@ -69,6 +72,22 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
+
+
+@app.post("/token", response_model=Token)
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = crud.authenticate_user(db, form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = crud.create_access_token(
+        data={"sub": user.email}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
 
 if __name__ == '__main__':
     uvicorn.run("main:app", host='0.0.0.0', port=8000, reload=True)

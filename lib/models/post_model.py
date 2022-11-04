@@ -1,7 +1,7 @@
 import sqlalchemy as sa
 from sqlalchemy import TIMESTAMP, text
 
-from app.database import Base
+from database.base_class import Base
 
 
 class Post(Base):
